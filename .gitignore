@@ -1,0 +1,17 @@
+# Virtual environment
+.venv/
+
+# Environment variables file for the agent
+.env
+health_insurance_agent/.env
+
+# Specific text file to ignore
+google-agent-development-kit-30May25-llms.txt
+google-agent-development-kit.txt
+
+# windsurf rules files to ignore
+coding-rules.md
+framework-rules.md
+# Python cache files
+__pycache__/
+*.py[cod]

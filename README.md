@@ -108,12 +108,24 @@ The agent requires a Google API key for the Gemini model.
 
 This file is the heart of the conversational AI. It defines the `root_agent` using Google ADK's `Agent` class. Key aspects include:
 
-*   **System Prompt**: A detailed set of instructions (`system_prompt` variable) guiding the agent's personality, goals, conversation style, tool usage, and how to format information.
-*   **Tool Integration**: Defines and integrates custom tools, such as `get_health_insurance_products`, which the agent can use to fetch information or perform actions.
+*   **System Prompt**: A detailed set of instructions (`system_prompt` variable) guiding the agent's personality, goals, conversation style, and a multi-step tool workflow.
+*   **Tool Integration & RAG**: Defines and integrates custom tools that enable a RAG (Retrieval-Augmented Generation) workflow:
+    *   `get_health_insurance_products`: A placeholder tool that simulates fetching a product and its corresponding PDF document URL.
+    *   `process_product_document`: Downloads the product PDF, extracts the text, and builds an in-memory vector store (using FAISS) for efficient searching.
+    *   `answer_from_product_document`: Takes a user's question, searches the vector store for relevant text chunks from the PDF, and returns them as context for the agent to formulate an answer.
 *   **Model Configuration**: Specifies the underlying language model (e.g., "gemini-2.0-flash") and other agent parameters.
 *   **ADK Compatibility**: Adheres to ADK's structure by naming the main agent instance `root_agent`, allowing ADK to discover and run it.
 
-### 2. Agent Runner Script (`health_insurance_agent_runner.py`)
+### 2. Key Dependencies (`requirements.txt`)
+
+The project relies on several key libraries to enable the RAG functionality:
+
+*   **`google-adk`**: The core framework for building the agent.
+*   **`pdfplumber`**: Used to extract text content from PDF documents robustly.
+*   **`sentence-transformers`**: Provides the embedding model (`all-MiniLM-L6-v2`) to convert text chunks and user questions into numerical vectors.
+*   **`faiss-cpu`**: A library for efficient similarity search, used to create and query the vector index of the PDF content.
+
+### 3. Agent Runner Script (`health_insurance_agent_runner.py`)
 
 This script (located in the project root) provides a standalone way to interact with and test the `health_insurance_agent` directly from the command line, without needing the full `adk web` or `adk run` interfaces. Its main functions are:
 

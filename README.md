@@ -1,4 +1,4 @@
-# Health Insurance Product Agent
+# Health Insurance Product Agent with RAG
 
 This project is a conversational AI agent designed to assist users in finding suitable health insurance products. It is built using the [Google Agent Development Kit (ADK)](https://google.github.io/adk-docs/).
 
@@ -9,7 +9,7 @@ Currently, the agent is in its first stage of development, focusing on establish
 **Important:** The Google Agent Development Kit (ADK) relies on a specific project structure to discover and load your agent. Please adhere to the following structure:
 
 ```
-health-insurance-chat-agent-3/  <- Project Root
+health-insurance-agent-with-rag/  <- Project Root
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
@@ -39,13 +39,13 @@ If you have this project on a remote Git repository (e.g., GitHub), clone it:
 
 ```bash
 git clone <repository_url>
-cd health-insurance-chat-agent-3
+cd health-insurance-agent-with-rag
 ```
 
 If you are working with a local copy, navigate to the project directory:
 
 ```bash
-cd path/to/health-insurance-chat-agent-3
+cd path/to/health-insurance-agent-with-rag
 ```
 
 ### 2. Create and Activate Virtual Environment
@@ -139,7 +139,7 @@ This script is particularly useful for quick tests, debugging specific interacti
 
 ## Running the Agent
 
-Ensure your virtual environment is activated and you are in the project root directory (`health-insurance-chat-agent-3`).
+Ensure your virtual environment is activated and you are in the project root directory (`health-insurance-agent-with-rag`).
 
 There are two primary ways to run the agent:
 

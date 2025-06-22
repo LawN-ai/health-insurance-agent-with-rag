@@ -23,18 +23,23 @@ async def call_agent_async(query, runner_instance, user_id_val, session_id_val):
 
     final_response_text = ""
     async for event in runner_instance.run_async(user_id=user_id_val, session_id=session_id_val, new_message=content):
-        # Uncomment to debug all event types:
-        # print(f"[DEBUG Event] Author: {getattr(event, 'author', 'N/A')}, Type: {type(event).__name__}, Content: {getattr(event, 'content', 'N/A')}")
+        # Safely check for tool-related events
+        if hasattr(event, 'content') and event.content and event.content.parts:
+            part = event.content.parts[0]
+            if hasattr(part, 'tool_code'):
+                print(f"\n[TOOL CALL] Agent is calling tool: {part.tool_code.name}")
+                continue  # A tool call is not the final response
+            elif hasattr(part, 'tool_output'):
+                print(f"[TOOL OUTPUT] Tool {part.tool_output.name} returned: {part.tool_output.result}")
+                continue  # A tool output is not the final response
 
+        # Check for final response event
         if hasattr(event, 'is_final_response') and event.is_final_response():
             if event.content and event.content.parts and hasattr(event.content.parts[0], 'text'):
                 final_response_text = event.content.parts[0].text
-                print(f"Agent Response: {final_response_text}")
+                print(f"\nAgent Response: {final_response_text}")
             else:
-                print("Agent Response: (No text part in final response or unexpected structure)")
-        # It's possible intermediate text parts come in other event types or FinalResponseEvents without is_final_response() being true yet
-        # For now, we are primarily focused on distinct tool calls/responses and the ultimate final text response.
-        # If accumulating intermediate text is needed, the logic from the GitHub issue (concatenating text from non-final events) would be added here.
+                print("\nAgent Response: (No text part in final response or unexpected structure)")
     return final_response_text
 
 async def main():

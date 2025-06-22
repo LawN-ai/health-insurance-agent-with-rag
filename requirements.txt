@@ -1,3 +1,6 @@
 google-adk
 litellm
 python-dotenv
+pdfplumber
+sentence-transformers
+faiss-cpu

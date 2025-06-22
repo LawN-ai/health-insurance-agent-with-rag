@@ -1,5 +1,103 @@
 from google.adk.agents import Agent
 from typing import List, Dict, Any
+import requests
+import pdfplumber
+import numpy as np
+import faiss
+from sentence_transformers import SentenceTransformer
+from io import BytesIO
+
+# --- RAG Components ---
+
+# In-memory store for the RAG data (simple approach for this use case)
+rag_storage = {
+    "index": None,
+    "chunks": []
+}
+
+# Load the embedding model once to be reused.
+embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+
+def process_product_document(pdf_url: str) -> Dict[str, str]:
+    """
+    Downloads a PDF from a URL, processes its content, and prepares it for RAG.
+    This involves extracting text, chunking it, creating embeddings, and building a FAISS index.
+
+    Args:
+        pdf_url: The URL of the product PDF to process.
+
+    Returns:
+        A dictionary with the status of the operation.
+    """
+    global rag_storage
+    try:
+        # 1. Download PDF from the URL
+        response = requests.get(pdf_url)
+        response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
+        pdf_file = BytesIO(response.content)
+
+        # 2. Extract Text using pdfplumber
+        text_content = ""
+        with pdfplumber.open(pdf_file) as pdf:
+            for page in pdf.pages:
+                text_content += page.extract_text() + "\n"
+
+        if not text_content.strip():
+            return {"status": "error", "message": "Could not extract text from the PDF."}
+
+        # 3. Text Chunking (simple split by paragraph)
+        chunks = [p.strip() for p in text_content.split('\n\n') if p.strip()]
+
+        # 4. Create Embeddings for the chunks
+        embeddings = embedding_model.encode(chunks, convert_to_tensor=True)
+        embeddings_np = embeddings.cpu().numpy()
+
+        # 5. Build and Store Vector Store (FAISS)
+        index = faiss.IndexFlatL2(embeddings_np.shape[1])
+        index.add(embeddings_np)
+
+        rag_storage["index"] = index
+        rag_storage["chunks"] = chunks
+
+        return {"status": "success", "message": f"Successfully processed document with {len(chunks)} chunks."}
+
+    except Exception as e:
+        # Log the exception for debugging if needed
+        print(f"Error processing PDF: {e}")
+        return {"status": "error", "message": f"Failed to process PDF: {str(e)}"}
+
+def answer_from_product_document(user_question: str) -> Dict[str, str]:
+    """
+    Retrieves relevant context from the processed PDF to answer a user's question.
+
+    Args:
+        user_question: The user's question about the product.
+
+    Returns:
+        A dictionary containing the retrieved context to help answer the question.
+    """
+    if not rag_storage["index"] or not rag_storage["chunks"]:
+        return {"context": "The product document has not been processed yet. Please use the 'process_product_document' tool first."}
+
+    try:
+        # 1. Create an embedding for the user's question
+        question_embedding = embedding_model.encode([user_question], convert_to_tensor=True)
+        question_embedding_np = question_embedding.cpu().numpy()
+
+        # 2. Perform similarity search in the FAISS index
+        k = 3  # Retrieve the top 3 most relevant chunks
+        distances, indices = rag_storage["index"].search(question_embedding_np, k)
+
+        # 3. Formulate the context from the retrieved chunks
+        retrieved_chunks = [rag_storage["chunks"][i] for i in indices[0]]
+        context = "\n\n---\n\n".join(retrieved_chunks)
+
+        return {"context": context}
+
+    except Exception as e:
+        print(f"Error searching document: {e}")
+        return {"context": f"An error occurred while searching the document: {str(e)}"}
+
 
 # Tool Definition
 def get_health_insurance_products(
@@ -97,9 +195,11 @@ system_prompt = """
 </conversation-goals>
 
 <tool-usage>
-- You have a tool available: `get_health_insurance_products`.
-- Use this tool ONLY AFTER you have collected all the required information (who the cover is for, type of cover, preferred services) AND you have confirmed this information with the user.
-- After the tool call, inform the user that you have noted their requirements. For example: "Thank you for confirming. I've processed your request for health cover for [family_type] needing [cover_type] cover, with interest in [preferred_services]."
+- You have three tools available: `get_health_insurance_products`, `process_product_document`, and `answer_from_product_document`.
+- **Step 1: Get Product.** Use `get_health_insurance_products` ONLY AFTER you have collected all the required information (who the cover is for, type of cover, preferred services) AND you have confirmed this information with the user.
+- **Step 2: Process PDF.** After `get_health_insurance_products` returns a product with a `product_pdf` URL, you MUST immediately call `process_product_document` with that URL. Do not wait for the user.
+- **Step 3: Present and Invite.** After `process_product_document` returns a success status, present the product information in a table as specified below. Then, invite the user to ask specific questions about the product, letting them know you can find details in the document. For example: "I have processed the product details. Please let me know if you have any specific questions about what's covered."
+- **Step 4: Answer Questions.** When the user asks a follow-up question about the product, use the `answer_from_product_document` tool to get relevant context from the PDF. Use this retrieved context to formulate your answer. If the context does not contain the answer, say so. For example: "Based on the document, here is what I found: [context]. If this doesn't answer your question, the detail might not be in the summary document."
 </tool-usage>
 
 <product-table>
@@ -148,7 +248,7 @@ root_agent = Agent(
     model="gemini-2.0-flash",
     description="A friendly assistant for health insurance product discussions.",
     instruction=system_prompt,
-    tools=[get_health_insurance_products],
+    tools=[get_health_insurance_products, process_product_document, answer_from_product_document],
     output_key="search_criteria"
 )
 

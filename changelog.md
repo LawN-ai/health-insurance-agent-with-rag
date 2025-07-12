@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-07-12
+
+### Added
+- Implemented a standalone Gradio web interface (`gradio_app.py`) for a user-friendly chat experience.
+- The Gradio app correctly initializes the ADK runner, manages conversation sessions, and loads the necessary API key.
+- This provides a new, recommended way to interact with the agent, complete with shareable public links.
+
 ## [1.3.0] - 2025-07-12
 
 ### Changed

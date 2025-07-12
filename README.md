@@ -12,6 +12,7 @@ health-insurance-agent-with-rag/  <- Project Root
 ├── README.md
 ├── requirements.txt
 ├── health_insurance_agent_runner.py <- Standalone runner script
+├── gradio_app.py             <- Gradio UI for the agent
 ├── health_insurance_agent/     <- Agent Module Directory
 │   ├── __init__.py           <- Makes this a Python package
 │   ├── agent.py              <- Defines your `root_agent`
@@ -104,18 +105,38 @@ The project relies on several key libraries to enable the RAG functionality:
 *   **`pdfplumber`**: Used to extract text content from PDF documents robustly.
 *   **`sentence-transformers`**: Provides the embedding model to convert text into numerical vectors.
 *   **`faiss-cpu`**: A library for efficient similarity search, used to create and query the vector index.
+*   **`gradio`**: Used to create the interactive web-based chat UI.
 
 ### 3. Agent Runner Script (`health_insurance_agent_runner.py`)
 
 This script provides a standalone way to interact with the agent directly from the command line. It's set up for a fully interactive chat session and will print tool call activity for debugging purposes.
 
+### 4. Gradio UI (`gradio_app.py`)
+
+This script launches a standalone, interactive web UI for the agent using the Gradio library. It provides a more polished user experience than the default ADK web interface and can be shared publicly.
+
+Key logic includes:
+*   **Environment Loading**: It starts by loading the `GOOGLE_API_KEY` from the `.env` file.
+*   **ADK Runner Initialization**: It creates a single, shared instance of the ADK `Runner` and `InMemorySessionService` that persists for the lifetime of the application.
+*   **Session Management**: For each new user conversation, it generates a unique session ID and explicitly creates a session with the `session_service` before processing the first message. This ensures conversation context is maintained correctly.
+*   **Asynchronous Processing**: It communicates with the agent asynchronously to handle user messages and stream back the final response.
+*   **Public Sharing**: The UI is launched with `share=True`, generating a temporary public URL for easy sharing.
+
 ## Running the Agent
 
 Ensure your virtual environment is activated and you are in the project root directory (`health-insurance-agent-with-rag`).
 
-There are three primary ways to run the agent:
+There are four primary ways to run the agent:
 
-### 1. Interactive Web UI (Recommended)
+### 1. Gradio Web UI (Recommended)
+
+This method launches a user-friendly, standalone chat interface in your browser using Gradio.
+
+```bash
+python gradio_app.py
+```
+
+### 2. Interactive ADK Web UI
 
 This method launches a local web server with a chat interface.
 
@@ -123,7 +144,7 @@ This method launches a local web server with a chat interface.
 adk web
 ```
 
-### 2. Interactive Terminal Runner (for Debugging)
+### 3. Interactive Terminal Runner (for Debugging)
 
 This script provides a fully interactive chat session in your terminal and prints detailed tool activity, which is useful for debugging.
 
@@ -131,7 +152,7 @@ This script provides a fully interactive chat session in your terminal and print
 python health_insurance_agent_runner.py
 ```
 
-### 3. Single Response from CLI
+### 4. Single Response from CLI
 
 You can get a single response from the agent for a given query directly from the command line.
 

@@ -124,7 +124,7 @@ def get_health_insurance_products(
         }'
     """
 
-    return     {
+    hospital_product = {
         "product_id": "bupa_prod_003",
         "product_name": "Bronze Plus Simple Hospital",
         "price": "From $ 21 .62* / week",
@@ -172,6 +172,71 @@ def get_health_insurance_products(
             {"service_name": "Podiatric surgery (provided by a registered podiatric surgeon)", "coverage_status": "Included"}
         ]
     }
+
+    extras_product = {
+        "product_id": "bupa_prod_006",
+        "product_name": "Wellness Extras",
+        "price": "From $12.50* / week",
+        "tier": "Extras",
+        "product_url": "https://www.bupa.com.au/health-insurance/cover/wellness-extras",
+        "product_pdf": "https://bupaanzstdhtauspub01.blob.core.windows.net/productfiles/Wellness_Extras_NSW_ACT_S_20250402_140646.pdf",
+        "services": [
+            {"service_name": "General Dental", "coverage_status": "Included"},
+            {"service_name": "Major Dental & Endodontic", "coverage_status": "Included"},
+            {"service_name": "Orthodontic", "coverage_status": "Included"},
+            {"service_name": "Optical", "coverage_status": "Included"},
+            {"service_name": "Physiotherapy", "coverage_status": "Included"},
+            {"service_name": "Chiropractic & Osteopathy", "coverage_status": "Included"},
+            {"service_name": "Podiatry", "coverage_status": "Included"},
+            {"service_name": "Foot Orthotics", "coverage_status": "Included"},
+            {"service_name": "Dietary", "coverage_status": "Included"},
+            {"service_name": "Mental Health (incl. Psychology)", "coverage_status": "Included"},
+            {"service_name": "Digital Mental Health", "coverage_status": "Included"},
+            {"service_name": "Acupuncture", "coverage_status": "Included"},
+            {"service_name": "Remedial Massage", "coverage_status": "Included"},
+            {"service_name": "Chinese Herbalism", "coverage_status": "Included"},
+            {"service_name": "Exercise Physiology", "coverage_status": "Included"},
+            {"service_name": "Non PBS Pharmaceuticals", "coverage_status": "Included"},
+            {"service_name": "Travel & Accommodation", "coverage_status": "Included"},
+            {"service_name": "Emergency Ambulance Services", "coverage_status": "Included"},
+            {"service_name": "Ante Natal - Midwife", "coverage_status": "Excluded"},
+            {"service_name": "Speech Therapy", "coverage_status": "Excluded"},
+            {"service_name": "Eye Therapy", "coverage_status": "Excluded"},
+            {"service_name": "Occupational Therapy", "coverage_status": "Excluded"},
+            {"service_name": "Health Management", "coverage_status": "Excluded"},
+            {"service_name": "Online Doctor Appointments", "coverage_status": "Excluded"},
+            {"service_name": "Home Nursing", "coverage_status": "Excluded"},
+            {"service_name": "Health Aids & Appliances", "coverage_status": "Excluded"},
+            {"service_name": "Hearing Aids", "coverage_status": "Excluded"},
+            {"service_name": "Blood Glucose Monitors", "coverage_status": "Excluded"}
+        ]
+    }
+
+    combined_product = {
+        "product_id": "bupa_prod_007",
+        "product_name": "Bronze Plus Simple Hospital with Wellness Extras",
+        "price": "From $55.50* / week",
+        "tier": "Hospital and Extras",
+        "product_url": "https://www.bupa.com.au/health-insurance/cover/bronze-plus-simple-hospital-with-wellness-extras",
+        "product_pdf": "https://bupaanzstdhtauspub01.blob.core.windows.net/productfiles/Bronze_Plus_Simple_Hospital_750_Excess_NSW_ACT_S_20250203_115425.pdf",
+        "services": [
+            {"service_name": "Hospital - Joint reconstructions", "coverage_status": "Included"},
+            {"service_name": "Hospital - Bone, joint and muscle", "coverage_status": "Included"},
+            {"service_name": "Extras - General Dental", "coverage_status": "Included"},
+            {"service_name": "Extras - Physiotherapy", "coverage_status": "Included"},
+            {"service_name": "Extras - Emergency Ambulance", "coverage_status": "Included"}
+        ]
+    }
+
+    if cover_type == 'hospital':
+        return hospital_product
+    elif cover_type == 'extras':
+        return extras_product
+    elif cover_type == 'both':
+        return combined_product
+    else:
+    # Default to hospital product if cover_type is not specified or recognized
+        return hospital_product
 
 
 system_prompt = """
